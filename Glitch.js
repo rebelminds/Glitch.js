@@ -90,7 +90,7 @@
 
 		var sheet = this.styleSheet();
 
-		this.addRule(sheet, '.glitch-displace', 'transition: all .3s ease', 0);
+		this.addRule(sheet, '.rm-glitch-displace', 'transition: all .3s ease', 0);
 
 		console.log(sheet);
 	}
@@ -231,7 +231,7 @@
 			height: collection.placement.height + 'px',
 			top: (isNaN(parentTop) ? collection.placement.top : collection.placement.top + parentTop) + 'px',
 			left: (isNaN(parentLeft) ? collection.placement.left : collection.placement.left + parentLeft) + 'px'
-		});
+		}).className = 'rm-glitch';
 
 		glitch.appendChild(rgbSplit);
 		glitch.appendChild(displace);
@@ -269,7 +269,7 @@
 			height: collection.placement.height + 'px',
 			top: 0,
 			left: 0
-		});
+		}).className = 'rm-glitch-displace';
 
 		var slices = Math.ceil(collection.placement.height / 15);
 
@@ -338,7 +338,7 @@
 			overflow: 'visible',
 			width: collection.placement.width + 'px',
 			height: collection.placement.height + 'px'
-		});
+		}).className = 'rm-glitch-rgbsplit';
 
 		rgbSplit.appendChild(red);
 		//rgbSplit.appendChild(green);
