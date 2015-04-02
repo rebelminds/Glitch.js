@@ -76,15 +76,12 @@
 		 }, this.delay);
 	}
 
-	Glitch.prototype.glitch = function() {
-
-		for (var i = 0; i < this.collection.length; i++) {
-
-		 	var collection = this.collection[i];
-
-		 	this.add(collection);
-		 }
-	}
+	/**
+	 * Scan layer and collect elements with target hex
+	 *
+	 * @param {Element} layer - 
+	 * @param {Number} target - 
+	 */
 
 	Glitch.prototype.collect = function(layer, target) {
 
@@ -101,22 +98,16 @@
 				color = computedStyle.getPropertyValue('color'),
 				backgroundColor = computedStyle.getPropertyValue('background-color'),
 				borderColor = computedStyle.getPropertyValue('border-color');
-
-			//console.log(el.tagName, color, backgroundColor, borderColor);
 			
 			if(!this.isHex(color)) color = this.rgbToHex(color);
 			if(!this.isHex(backgroundColor)) backgroundColor = this.rgbToHex(backgroundColor);
 			if(!this.isHex(borderColor)) borderColor = this.rgbToHex(borderColor);
-
-			//console.log(c);
 
 			var propreties = {
 				color: color.toUpperCase() === this.target ? color : false,
 				backgroundColor: backgroundColor.toUpperCase() === this.target ? backgroundColor : false,
 				borderColor: borderColor.toUpperCase() === this.target ? borderColor : false
 			};
-
-			//console.log(propreties);
 
 			if( propreties.color !== false ||
 				propreties.backgroundColor !== false ||
@@ -135,24 +126,28 @@
 		return tl;
 	}
 
-	Glitch.prototype.rgbToHex = function(rgb) {
+	/**
+	 * Glitch each element in collection
+	 *
+	 */
 
-		rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+	Glitch.prototype.glitch = function() {
 
- 		return '#' + this.hex(rgb[1]) + this.hex(rgb[2]) + this.hex(rgb[3]);
+		for (var i = 0; i < this.collection.length; i++) {
+
+		 	var collection = this.collection[i];
+
+		 	if(collection.glitch) this.remove(collection);
+
+		 	this.collection[i].glitch = this.add(collection);
+		 }
 	}
 
-	Glitch.prototype.hex = function(v) {
-
-		var hexDigits = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
-
-		return isNaN(v) ? '00' : hexDigits[(v - v % 16) / 16] + hexDigits[v % 16];
-	}
-
-	Glitch.prototype.isHex = function(v) {
-
-		return v.match(/^[0-9A-Fa-f]+$/);
-	}
+	/**
+	 * 
+	 *
+	 * @param {Object} collection - 
+	 */
 
 	Glitch.prototype.add = function(collection) {
 
@@ -162,7 +157,15 @@
 		collection.el.parentNode.appendChild(displace);
 
 		collection.el.style.opacity = 0;
+
+		return displace;
 	}
+
+	/**
+	 * 
+	 *
+	 * @param {Object} collection - 
+	 */
 
 	Glitch.prototype.displace = function(collection) {
 
@@ -183,40 +186,55 @@
 
 		displace.appendChild(rgbSplit);
 
-		var topSlice = this.displaceSlice(collection,'top');
+		var slices = Math.ceil(collection.placement.height / 15);
 
-		displace.appendChild(topSlice);
+		for (var i = 0; i < slices; i++) {
 
-		var bottomSlice = this.displaceSlice(collection,'bottom');
+			var slice = this.displaceSlice(collection, [i, slices]);
 
-		displace.appendChild(bottomSlice);
+			displace.appendChild(slice);
+		}
 
 		return displace;
 	}
+
+	/**
+	 * 
+	 *
+	 * @param {Object} collection - 
+	 * @param {Array} position - 
+	 */
 
 	Glitch.prototype.displaceSlice = function(collection, position) {
 
 		var slice = document.createElement('DIV'),
 
 			offsetX = Math.floor(Math.random() * (this.offset * this.frequency + 1)) + this.offset,
-			offsetY = Math.ceil(collection.placement.height * .5); //TO DO: ADD RAND
+			offsetY = Math.ceil(collection.placement.height / position[1]),
+			odd = this.isOdd(position[0]);
 
 		slice.style.position = 'absolute';
 		slice.style.overflow = 'hidden';
 		slice.style.width = collection.placement.width + 'px';
 		slice.style.height = offsetY + 'px';
-		slice.style.left = (position === 'top' ? -offsetX : offsetX) + 'px';
-		slice.style.top = (position === 'top' ? 0 : offsetY) + 'px';
+		slice.style.left = (odd ? -offsetX : offsetX) + 'px';
+		slice.style.top = (position[0] * offsetY) + 'px';
 
 		var clone = collection.el.cloneNode(true);
 
 		clone.style.position = 'absolute';
-		clone.style.top = (position === 'top' ? 0 : -offsetY) + 'px';
+		clone.style.top = -(position[0] * offsetY) + 'px';
 
 		slice.appendChild(clone);
 
 		return slice
 	}
+
+	/**
+	 * 
+	 *
+	 * @param {Object} collection - 
+	 */
 
 	Glitch.prototype.rgbSplit = function(collection) {
 
@@ -224,8 +242,6 @@
 
 			offsetX = Math.floor(Math.random() * (this.offset * this.frequency + 1)) + this.offset,
 			offsetY = Math.floor(Math.random() * (this.offset * this.frequency)) + this.offset;
-
-		console.log(offsetX, offsetY);
 
 		var red = this.split(collection, -offsetX, offsetY, '#FF00FF');
 
@@ -238,13 +254,17 @@
 		return split;
 	}
 
+	/**
+	 * 
+	 *
+	 * @param {Object} collection - 
+	 */
+
 	Glitch.prototype.split = function(collection, offsetX, offsetY, hex) {
 
 		var split = collection.el.cloneNode(true);
 
 		split.style.position = 'absolute';
-
-		//console.log(collection.propreties);
 
 		for(var k in collection.propreties)
 			if(collection.propreties[k] !== false)
@@ -256,8 +276,76 @@
 		return split;
 	}
 
+	/**
+	 * 
+	 *
+	 * @param {Object} collection - 
+	 */
+
 	Glitch.prototype.remove = function(collection) {
 		
+		collection.el.parentNode.removeChild(collection.glitch);
+
+		delete collection.glitch;
+	}
+
+	/**
+	 * 
+	 *
+	 * @param {String} rgb - 
+	 */
+
+	Glitch.prototype.rgbToHex = function(rgb) {
+
+		rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+
+ 		return '#' + this.hex(rgb[1]) + this.hex(rgb[2]) + this.hex(rgb[3]);
+	}
+
+	/**
+	 * 
+	 *
+	 * @param {String} v - 
+	 */
+
+	Glitch.prototype.hex = function(v) {
+
+		var hexDigits = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+
+		return isNaN(v) ? '00' : hexDigits[(v - v % 16) / 16] + hexDigits[v % 16];
+	}
+
+	/**
+	 * 
+	 *
+	 * @param {String} v - 
+	 */
+
+	Glitch.prototype.isHex = function(v) {
+
+		return v.match(/^[0-9A-Fa-f]+$/);
+	}
+
+	/**
+	 * 
+	 *
+	 * @param {Number} n - 
+	 */
+
+	Glitch.prototype.isOdd = function(n) {
+
+		return this.isNumber(n) && (Math.abs(n) % 2 == 1);
+	}
+
+	/**
+	 * 
+	 *
+	 * @param {Number} n - 
+	 */
+
+	Glitch.prototype.isNumber = function(n) {
+
+		return n === parseFloat(n);
 	}
 
 	/**
@@ -271,8 +359,7 @@
 		return new Glitch(layer, options);
 	}
 
-	Glitch.detach = function() {
-
+	Glitch.destroy = function() {
 
 	}
 
