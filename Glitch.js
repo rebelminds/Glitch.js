@@ -72,6 +72,34 @@
 		 *
 		 */
 		this.start(this.delay);
+
+		var self = this;
+
+		window.addEventListener('resize', function(e) { self.updateCollectionPlacement(); });
+	}
+
+	Glitch.prototype.updateCollectionPlacement = function(e) {
+
+		console.log('resize', this.collection.length + 'element(s)');
+
+		for (var i = 0; i < this.collection.length; i++) {
+		 	
+		 	var collection = this.collection[i];
+
+		 	collection.placement = {
+
+		 		width: collection.el.offsetWidth,
+		 		height: collection.el.offsetHeight,
+		 		top: collection.el.offsetTop,
+		 		left: collection.el.offseLeft
+		 	}
+
+		 	if(collection.glitch)
+		 		this.applyCss(collection.glitch.el, {
+		 			top: collection.placement.top + 'px',
+		 			left: collection.placement.left + 'px'
+		 		});
+		 }
 	}
 
 	/**
@@ -100,7 +128,7 @@
 		style.setAttribute("media", "screen");
 
 		// WebKit hack :(
-		style.appendChild(document.createTextNode(""));
+		style.appendChild(document.createTextNode(''));
 
 		// Add the <style> element to the page
 		document.head.appendChild(style);
@@ -131,6 +159,10 @@
 	 * returns {Array} tl - 
 	 */
 	Glitch.prototype.collect = function(layer, target) {
+
+		this.applyCss(layer, {
+			overflow: 'visible'
+		});
 
 		var tl = [],
 			te = layer.getElementsByTagName('*'); //document.body.getElementsByTagName("*");
@@ -261,7 +293,7 @@
 	 	}).appendChild(el);
 
 	 	var self = this,
-	 		duration = Math.floor(Math.random() * 900) + 300,
+	 		duration = Math.floor(Math.random() * 1200) + 900,
 	 		timeoutID = window.setTimeout(function() { self.remove(collection); clearTimeout(timeoutID); }, duration);
 
 		return collection;
@@ -282,7 +314,7 @@
 
 		delete collection.glitch;
 
-		if(this.done === this.collection.length) this.start(Math.floor(Math.random() * 8000) + 2000);
+		if(this.done === this.collection.length) this.start(Math.floor(Math.random() * 3000) + 1000);
 	}
 
 	/**
@@ -532,9 +564,13 @@
 			return Glitch;
 		});
 	} else if (typeof module !== 'undefined' && module.exports) {
+
 		module.exports = Glitch.attach;
 		module.exports.Glitch = Glitch;
 	} else {
+
 		window.Glitch = Glitch;
 	}
+
+	new Glitch(document.body, {delay:1000});
 }());
