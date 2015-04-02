@@ -81,6 +81,8 @@
 	 *
 	 * @param {Element} layer - 
 	 * @param {Number} target - 
+	 *
+	 * returns {Array} tl - 
 	 */
 
 	Glitch.prototype.collect = function(layer, target) {
@@ -147,24 +149,28 @@
 	 * 
 	 *
 	 * @param {Object} collection - 
+	 *
+	 * returns {Object} glitch - 
 	 */
 
 	Glitch.prototype.add = function(collection) {
 
-		var displace = this.displace(collection);
+		var glitch = this.displace(collection);
 
 		collection.el.parentNode.style.overflow = 'visible';
-		collection.el.parentNode.appendChild(displace);
+		collection.el.parentNode.appendChild(glitch);
 
 		collection.el.style.opacity = 0;
 
-		return displace;
+		return glitch;
 	}
 
 	/**
 	 * 
 	 *
 	 * @param {Object} collection - 
+	 *
+	 * returns {Object} displace - 
 	 */
 
 	Glitch.prototype.displace = function(collection) {
@@ -203,6 +209,8 @@
 	 *
 	 * @param {Object} collection - 
 	 * @param {Array} position - 
+	 *
+	 * returns {Object} slice - 
 	 */
 
 	Glitch.prototype.displaceSlice = function(collection, position) {
@@ -234,30 +242,52 @@
 	 * 
 	 *
 	 * @param {Object} collection - 
+	 *
+	 * returns {Object} rgbSplit - 
 	 */
 
 	Glitch.prototype.rgbSplit = function(collection) {
 
-		var split = document.createElement('DIV'),
+		var rgbSplit = document.createElement('DIV'),
+			offset = this.channelOffset();
 
-			offsetX = Math.floor(Math.random() * (this.offset * this.frequency + 1)) + this.offset,
+		var red = this.split(collection, -offset[0], offset[1], '#FF00FF');
+
+		rgbSplit.appendChild(red);
+
+		/*
+		var green = this.split(collection, offset[0], offset[1], '#FFFF00');
+
+		rgbSplit.appendChild(green);
+		*/
+		
+		var blue = this.split(collection, offset[0], -offset[1], '#00FFFF');
+
+		rgbSplit.appendChild(blue);
+
+		return rgbSplit;
+	}
+
+	/**
+	 * 
+	 *
+	 * returns {Array}  
+	 */
+
+	Glitch.prototype.channelOffset = function() {
+
+		var offsetX = Math.floor(Math.random() * (this.offset * this.frequency + 1)) + this.offset,
 			offsetY = Math.floor(Math.random() * (this.offset * this.frequency)) + this.offset;
 
-		var red = this.split(collection, -offsetX, offsetY, '#FF00FF');
-
-		split.appendChild(red);
-
-		var blue = this.split(collection, offsetX, -offsetY, '#00FFFF');
-
-		split.appendChild(blue);
-
-		return split;
+		return [offsetX, offsetY];
 	}
 
 	/**
 	 * 
 	 *
 	 * @param {Object} collection - 
+	 *
+	 * returns {Object} split - 
 	 */
 
 	Glitch.prototype.split = function(collection, offsetX, offsetY, hex) {
@@ -293,6 +323,8 @@
 	 * 
 	 *
 	 * @param {String} rgb - 
+	 *
+	 * returns {String} hex -
 	 */
 
 	Glitch.prototype.rgbToHex = function(rgb) {
@@ -306,6 +338,8 @@
 	 * 
 	 *
 	 * @param {String} v - 
+	 *
+	 * returns {String} hex -
 	 */
 
 	Glitch.prototype.hex = function(v) {
@@ -319,6 +353,8 @@
 	 * 
 	 *
 	 * @param {String} v - 
+	 *
+	 * returns {Boolean}
 	 */
 
 	Glitch.prototype.isHex = function(v) {
@@ -330,6 +366,8 @@
 	 * 
 	 *
 	 * @param {Number} n - 
+	 *
+	 * returns {Boolean}
 	 */
 
 	Glitch.prototype.isOdd = function(n) {
@@ -341,6 +379,8 @@
 	 * 
 	 *
 	 * @param {Number} n - 
+	 *
+	 * returns {Boolean}
 	 */
 
 	Glitch.prototype.isNumber = function(n) {
