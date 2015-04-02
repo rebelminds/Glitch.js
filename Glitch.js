@@ -67,19 +67,11 @@
 		 */
 		this.collection = this.collect(this.layer, this.target);
 
-		 /**
+		/**
 		 * Initialize Glitch with delay of this.delay
 		 *
 		 */
-		var self = this,
-			t;
-
-		 t = setTimeout(function() {
-
-		 	clearTimeout(t);
-
-		 	self.glitch();
-		 }, this.delay);
+		this.start(this.delay);
 	}
 
 	/**
@@ -90,7 +82,9 @@
 
 		var sheet = this.styleSheet();
 
-		this.addRule(sheet, '.rm-glitch-displace', 'transition: all .3s ease', 0);
+		this.addRule(sheet, '.rm-glitch', 'transition: all .3s ease', 0);
+		this.addRule(sheet, '.rm-glitch-displace', 'transition: all .3s ease', 1);
+		this.addRule(sheet, '.rm-glitch-rgbsplit', 'transition: all .3s ease', 2);
 
 		console.log(sheet);
 	}
@@ -180,30 +174,44 @@
 	}
 
 	/**
+	 * 
+	 *
+	 */
+	Glitch.prototype.start = function(delay) {
+
+		this.delay = delay || 0;
+
+		this.stop();
+    	var self = this;
+    	this.timeoutID = window.setTimeout(function(e){ self.glitch(e); }, this.delay, 'glitch!');
+	}
+
+	/**
+	 * 
+	 *
+	 */
+	Glitch.prototype.stop = function() {
+
+		if(typeof this.timeoutID === 'number') {
+			window.clearTimeout(this.timeoutID);
+			delete this.timeoutID;
+		}
+	}
+
+	/**
 	 * Glitch each element in collection
 	 *
 	 */
-	Glitch.prototype.glitch = function() {
+	Glitch.prototype.glitch = function(e) {
 
-		for (var i = 0; i < this.collection.length; i++) {
+		console.log(e);
+    	
+    	delete this.timeoutID;
 
-		 	var collection = this.collection[i];
+    	this.done = 0;
 
-		 	if(collection.glitch) this.remove(collection.glitch);
-
-		 	var glitch = this.add(collection),
-		 		parentNode = this.collection[i].el.parentNode;
-
-		 	this.applyCss(parentNode, {
-		 		overflow: 'visible'
-		 	}).appendChild(glitch.el);
-
-			this.collection[i].el.style.opacity = 0;
-
-			this.collection[i].glitch = glitch;
-
-			console.log(glitch);
-		 }
+		for (var i = 0; i < this.collection.length; i++)
+		 	this.add(this.collection[i]);
 	}
 
 	/**
@@ -215,16 +223,19 @@
 	 */
 	Glitch.prototype.add = function(collection) {
 
-		var parentComputedStyle = window.getComputedStyle(collection.el.parentNode),
+		if(collection.glitch) this.remove(collection);
+
+		var parentNode = collection.el.parentNode,
+			parentComputedStyle = window.getComputedStyle(parentNode),
 			parentTop = parentComputedStyle.getPropertyValue('top'),
 			parentLeft = parentComputedStyle.getPropertyValue('left');
 
-		var glitch = document.createElement('DIV'),
+		var el = document.createElement('DIV'),
 
 			rgbSplit = this.rgbSplit(collection),
 			displace = this.displace(collection);
 
-		this.applyCss(glitch, {
+		this.applyCss(el, {
 			position: 'absolute',
 			overflow: 'visible',
 			width: collection.placement.width + 'px',
@@ -233,10 +244,27 @@
 			left: (isNaN(parentLeft) ? collection.placement.left : collection.placement.left + parentLeft) + 'px'
 		}).className = 'rm-glitch';
 
-		glitch.appendChild(rgbSplit);
-		glitch.appendChild(displace);
+		el.appendChild(rgbSplit);
+		el.appendChild(displace);
 
-		return {el: glitch, rgbSplit: rgbSplit, displace: displace};
+		collection.el.style.opacity = 0;
+
+		collection['glitch'] = {
+
+			el: el, 
+			rgbSplit: rgbSplit, 
+			displace: displace 
+		};
+
+		this.applyCss(parentNode, {
+	 		overflow: 'visible'
+	 	}).appendChild(el);
+
+	 	var self = this,
+	 		duration = Math.floor(Math.random() * 900) + 300,
+	 		timeoutID = window.setTimeout(function() { self.remove(collection); clearTimeout(timeoutID); }, duration);
+
+		return collection;
 	}
 
 	/**
@@ -244,11 +272,17 @@
 	 *
 	 * @param {Object} collection - 
 	 */
-	Glitch.prototype.remove = function(glitch) {
+	Glitch.prototype.remove = function(collection) {
+
+		++this.done;
 		
-		glitch.el.parentNode.removeChild(glitch.el);
+		collection.el.style.opacity = 1;
+
+		collection.glitch.el.parentNode.removeChild(collection.glitch.el);
 
 		delete collection.glitch;
+
+		if(this.done === this.collection.length) this.start(Math.floor(Math.random() * 8000) + 2000);
 	}
 
 	/**
@@ -271,7 +305,7 @@
 			left: 0
 		}).className = 'rm-glitch-displace';
 
-		var slices = Math.ceil(collection.placement.height / 15);
+		var slices = Math.ceil(collection.placement.height / 15); //TO DO: BETTER SPLIT FORMULA
 
 		for (var i = 0; i < slices; i++) {
 
