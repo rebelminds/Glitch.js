@@ -31,28 +31,35 @@
 		 *
 		 * @type String (hex)
 		 */
-		 this.target = options.target || '#FFFFFF';
+		this.target = options.target || '#FFFFFF';
 
 		 /**
 		 * Frequency of glitch.
 		 *
 		 * @type Number (int)
 		 */
-		 this.frequency = options.frequency || 5;
+		this.frequency = options.frequency || 1.5;
+
+		/**
+		 * Offset amount for displace and rgb split.
+		 *
+		 * @type Number (int)
+		 */
+		this.offset = 2;
 
 		 /**
 		 * Initial delay of first glitch.
 		 *
 		 * @type Number (int)
 		 */
-		 this.delay = options.delay || 0;
+		this.delay = options.delay || 0;
 
 		 /**
 		 * Collection of elements to Glitch
 		 *
 		 * @type Array
 		 */
-		 this.collection = this.collect(this.layer, this.target);
+		this.collection = this.collect(this.layer, this.target);
 
 		 /**
 		 * 
@@ -73,9 +80,9 @@
 
 		for (var i = 0; i < this.collection.length; i++) {
 
-		 	var el = this.collection[i];
+		 	var collection = this.collection[i];
 
-		 	this.add(el);
+		 	this.add(collection);
 		 }
 	}
 
@@ -101,11 +108,28 @@
 			if(!this.isHex(backgroundColor)) backgroundColor = this.rgbToHex(backgroundColor);
 			if(!this.isHex(borderColor)) borderColor = this.rgbToHex(borderColor);
 
-			//console.log(c);	
+			//console.log(c);
 
-			if( color.toUpperCase() === this.target ||
-				backgroundColor.toUpperCase() === this.target ||
-				borderColor.toUpperCase() === this.target ) tl.push(el);
+			var propreties = {
+				color: color.toUpperCase() === this.target ? color : false,
+				backgroundColor: backgroundColor.toUpperCase() === this.target ? backgroundColor : false,
+				borderColor: borderColor.toUpperCase() === this.target ? borderColor : false
+			};
+
+			//console.log(propreties);
+
+			if( propreties.color !== false ||
+				propreties.backgroundColor !== false ||
+				propreties.borderColor !== false ) tl.push({
+					el: el,
+					propreties: propreties,
+					placement: {
+						width: el.offsetWidth,
+						height: el.offsetHeight,
+						left: el.offsetLeft,
+						top: el.offsetTop
+					}
+				});
 		}
 
 		return tl;
@@ -130,71 +154,61 @@
 		return v.match(/^[0-9A-Fa-f]+$/);
 	}
 
-	Glitch.prototype.add = function(el) {
+	Glitch.prototype.add = function(collection) {
 
-		var displace = this.displace(el);
+		var displace = this.displace(collection);
 
-		el.parentNode.style.overflow = 'visible';
-		el.parentNode.appendChild(displace);
+		collection.el.parentNode.style.overflow = 'visible';
+		collection.el.parentNode.appendChild(displace);
 
-		el.style.opacity = 0;
+		collection.el.style.opacity = 0;
 	}
 
-	Glitch.prototype.displace = function(el) {
+	Glitch.prototype.displace = function(collection) {
 
-		var computedStyle = window.getComputedStyle(el, null);
-
-		var d = {
-
-			w: el.offsetWidth,
-			h: el.offsetHeight,
-			x: el.offsetLeft,
-			y: el.offsetTop,
-			style: {
-				color: computedStyle.getPropertyValue('color'),
-				backgroundColor: computedStyle.getPropertyValue('background-color'),
-				borderColor: computedStyle.getPropertyValue('border-color')
-			}
-		};
+		var parentComputedStyle = window.getComputedStyle(collection.el.parentNode),
+			parentTop = parentComputedStyle.getPropertyValue('top'),
+			parentLeft = parentComputedStyle.getPropertyValue('left');
 
 		var displace = document.createElement('DIV');
 
 		displace.style.position = 'absolute';
 		displace.style.overflow = 'visible';
-		displace.style.width = d.w + 'px';
-		displace.style.height = d.h + 'px';
-		displace.style.left = d.x + 'px';
-		displace.style.top = d.y + 'px';
+		displace.style.width = collection.placement.width + 'px';
+		displace.style.height = collection.placement.height + 'px';
+		displace.style.top = (isNaN(parentTop) ? collection.placement.top : collection.placement.top + parentTop) + 'px';
+		displace.style.left = (isNaN(parentLeft) ? collection.placement.left : collection.placement.left + parentLeft) + 'px';
 
-		var rgbSplit = this.rgbSplit(el, d);
+		var rgbSplit = this.rgbSplit(collection);
 
 		displace.appendChild(rgbSplit);
 
-		var topSlice = this.displaceSlice(el, d,'top');
+		var topSlice = this.displaceSlice(collection,'top');
 
 		displace.appendChild(topSlice);
 
-		var bottomSlice = this.displaceSlice(el, d,'bottom');
+		var bottomSlice = this.displaceSlice(collection,'bottom');
 
 		displace.appendChild(bottomSlice);
 
 		return displace;
 	}
 
-	Glitch.prototype.displaceSlice = function(el, d, position) {
+	Glitch.prototype.displaceSlice = function(collection, position) {
 
-		var offsetX = Math.floor(d.w * .05),
-			offsetY = Math.ceil(d.h * .5),
-			slice = document.createElement('DIV');
+		var slice = document.createElement('DIV'),
+
+			offsetX = Math.floor(Math.random() * (this.offset * this.frequency + 1)) + this.offset,
+			offsetY = Math.ceil(collection.placement.height * .5); //TO DO: ADD RAND
 
 		slice.style.position = 'absolute';
 		slice.style.overflow = 'hidden';
-		slice.style.width = d.w + 'px';
+		slice.style.width = collection.placement.width + 'px';
 		slice.style.height = offsetY + 'px';
 		slice.style.left = (position === 'top' ? -offsetX : offsetX) + 'px';
 		slice.style.top = (position === 'top' ? 0 : offsetY) + 'px';
 
-		var clone = el.cloneNode(true);
+		var clone = collection.el.cloneNode(true);
 
 		clone.style.position = 'absolute';
 		clone.style.top = (position === 'top' ? 0 : -offsetY) + 'px';
@@ -204,46 +218,37 @@
 		return slice
 	}
 
-	Glitch.prototype.rgbSplit = function(el, d) {
+	Glitch.prototype.rgbSplit = function(collection) {
 
-		var offsetX = Math.floor(d.w * .075),
-			offsetY = Math.floor(d.h * .05),
-			split = document.createElement('DIV');
+		var split = document.createElement('DIV'),
 
-		var red = this.split(el, d, -offsetX, offsetY, '#FF00FF');
+			offsetX = Math.floor(Math.random() * (this.offset * this.frequency + 1)) + this.offset,
+			offsetY = Math.floor(Math.random() * (this.offset * this.frequency)) + this.offset;
+
+		console.log(offsetX, offsetY);
+
+		var red = this.split(collection, -offsetX, offsetY, '#FF00FF');
 
 		split.appendChild(red);
 
-		var blue = this.split(el, d, offsetX, -offsetY, '#00FFFF');
+		var blue = this.split(collection, offsetX, -offsetY, '#00FFFF');
 
 		split.appendChild(blue);
 
 		return split;
 	}
 
-	Glitch.prototype.split = function(el, d, offsetX, offsetY, hex) {
+	Glitch.prototype.split = function(collection, offsetX, offsetY, hex) {
 
-		var split = el.cloneNode(true);
+		var split = collection.el.cloneNode(true);
 
 		split.style.position = 'absolute';
 
-		var color = d.style.color;
+		//console.log(collection.propreties);
 
-		if(!this.isHex(color)) color = this.rgbToHex(color);
-
-		if(color.toUpperCase() === this.target) split.style.color = hex;
-		
-		var backgroundColor = d.style.backgroundColor;
-
-		if(!this.isHex(backgroundColor)) backgroundColor = this.rgbToHex(backgroundColor);
-
-		if(backgroundColor.toUpperCase() === this.target) split.style.backgroundColor = hex;
-		
-		var borderColor = d.style.borderColor;
-
-		if(!this.isHex(borderColor)) borderColor = this.rgbToHex(borderColor);
-		
-		if(borderColor.toUpperCase() === this.target) split.style.borderColor = hex;
+		for(var k in collection.propreties)
+			if(collection.propreties[k] !== false)
+				split.style[k] = hex;
 
 		split.style.left = -offsetX + 'px';
 		split.style.top = offsetY + 'px';
@@ -251,7 +256,7 @@
 		return split;
 	}
 
-	Glitch.prototype.remove = function(el) {
+	Glitch.prototype.remove = function(collection) {
 		
 	}
 
