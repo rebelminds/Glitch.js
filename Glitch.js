@@ -142,9 +142,9 @@
 		 	var glitch = this.add(collection),
 		 		parentNode = this.collection[i].el.parentNode;
 
-		 	parentNode.style.overflow = 'visible';
-
-			parentNode.appendChild(glitch.el);
+		 	this.applyCss(parentNode, {
+		 		overflow: 'visible'
+		 	}).appendChild(glitch.el);
 
 			this.collection[i].el.style.opacity = 0;
 
@@ -277,7 +277,10 @@
 	Glitch.prototype.rgbSplit = function(collection) {
 
 		var rgbSplit = document.createElement('DIV'),
-			offset = this.channelOffset();
+			offset = this.channelOffset(),
+			red = this.rgbChannel(collection, -offset[0], offset[1], '#FF00FF'),
+			//green = this.rgbChannel(collection, offset[0], offset[1], '#FFFF00'),
+			blue = this.rgbChannel(collection, offset[0], -offset[1], '#00FFFF');
 
 		this.applyCss(rgbSplit, {
 			overflow: 'visible',
@@ -285,18 +288,8 @@
 			height: collection.placement.height + 'px'
 		});
 
-		var red = this.rgbChannel(collection, -offset[0], offset[1], '#FF00FF');
-
 		rgbSplit.appendChild(red);
-
-		/*
-		var green = this.rgbChannel(collection, offset[0], offset[1], '#FFFF00');
-
-		rgbSplit.appendChild(green);
-		*/
-		
-		var blue = this.rgbChannel(collection, offset[0], -offset[1], '#00FFFF');
-
+		//rgbSplit.appendChild(green);
 		rgbSplit.appendChild(blue);
 
 		return rgbSplit;
@@ -420,6 +413,7 @@
 		for(var k in properties)
 			el.style[k] = properties[k];
 
+		return el;
 	}
 
 	/**
