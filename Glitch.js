@@ -172,12 +172,14 @@
 			rgbSplit = this.rgbSplit(collection),
 			displace = this.displace(collection);
 
-		glitch.style.position = 'absolute';
-		glitch.style.overflow = 'visible';
-		glitch.style.width = collection.placement.width + 'px';
-		glitch.style.height = collection.placement.height + 'px';
-		glitch.style.top = (isNaN(parentTop) ? collection.placement.top : collection.placement.top + parentTop) + 'px';
-		glitch.style.left = (isNaN(parentLeft) ? collection.placement.left : collection.placement.left + parentLeft) + 'px';
+		this.applyCss(glitch, {
+			position: 'absolute',
+			overflow: 'visible',
+			width: collection.placement.width + 'px',
+			height: collection.placement.height + 'px',
+			top: (isNaN(parentTop) ? collection.placement.top : collection.placement.top + parentTop) + 'px',
+			left: (isNaN(parentLeft) ? collection.placement.left : collection.placement.left + parentLeft) + 'px'
+		});
 
 		glitch.appendChild(rgbSplit);
 		glitch.appendChild(displace);
@@ -208,12 +210,14 @@
 
 		var displace = document.createElement('DIV');
 
-		displace.style.position = 'absolute';
-		displace.style.overflow = 'visible';
-		displace.style.width = collection.placement.width + 'px';
-		displace.style.height = collection.placement.height + 'px';
-		displace.style.top = '0px';
-		displace.style.left = '0px';
+		this.applyCss(displace, {
+			position: 'absolute',
+			overflow: 'visible',
+			width: collection.placement.width + 'px',
+			height: collection.placement.height + 'px',
+			top: 0,
+			left: 0
+		});
 
 		var slices = Math.ceil(collection.placement.height / 15);
 
@@ -243,12 +247,14 @@
 			offsetY = Math.ceil(collection.placement.height / position[1]),
 			isOdd = this.isOdd(position[0]);
 
-		slice.style.position = 'absolute';
-		slice.style.overflow = 'hidden';
-		slice.style.width = collection.placement.width + 'px';
-		slice.style.height = offsetY + 'px';
-		slice.style.left = (isOdd ? -offsetX : offsetX) + 'px';
-		slice.style.top = (position[0] * offsetY) + 'px';
+		this.applyCss(slice, {
+			position: 'absolute',
+			overflow: 'hidden',
+			width: collection.placement.width + 'px',
+			height: offsetY + 'px',
+			left: (isOdd ? -offsetX : offsetX) + 'px',
+			top: (position[0] * offsetY) + 'px'
+		});
 
 		var clone = collection.el.cloneNode(true);
 
@@ -273,9 +279,11 @@
 		var rgbSplit = document.createElement('DIV'),
 			offset = this.channelOffset();
 
-		rgbSplit.style.overflow = 'visible';
-		rgbSplit.style.width = collection.placement.width + 'px';
-		rgbSplit.style.height = collection.placement.height + 'px';
+		this.applyCss(rgbSplit, {
+			overflow: 'visible',
+			width: collection.placement.width + 'px',
+			height: collection.placement.height + 'px'
+		});
 
 		var red = this.rgbChannel(collection, -offset[0], offset[1], '#FF00FF');
 
@@ -324,10 +332,14 @@
 			if(collection.propreties[k] !== false)
 				channel.style[k] = hex;
 
-		channel.style.width = collection.placement.width + 'px';
-		channel.style.height = collection.placement.height + 'px';
-		channel.style.left = -offsetX + 'px';
-		channel.style.top = offsetY + 'px';
+		this.applyCss(channel, {
+			width: collection.placement.width + 'px',
+			height: collection.placement.height + 'px',
+			left: -offsetX + 'px',
+			top: offsetY + 'px'
+
+
+		});
 
 		return channel;
 	}
@@ -400,11 +412,13 @@
 	 * 
 	 *
 	 * @param {Object} el - DOM Element
-	 * @param {Object} propreties - 
+	 * @param {Object} properties - 
 	 *
 	 */
-	Glitch.prototype.css = function(el, propreties) {
+	Glitch.prototype.applyCss = function(el, properties) {
 
+		for(var k in properties)
+			el.style[k] = properties[k];
 
 	}
 
