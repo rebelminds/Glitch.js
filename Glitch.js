@@ -54,6 +54,12 @@
 		 */
 		this.delay = options.delay || 0;
 
+		/**
+		 * 
+		 *
+		 */
+		this.attachStyles();
+
 		 /**
 		 * Collection of elements to Glitch
 		 *
@@ -74,6 +80,52 @@
 
 		 	self.glitch();
 		 }, this.delay);
+	}
+
+	/**
+	 * 
+	 *
+	 */
+	Glitch.prototype.attachStyles = function() {
+
+		var sheet = this.styleSheet();
+
+		this.addRule(sheet, '.glitch-displace', 'transition: all .3s ease', 0);
+
+		console.log(sheet);
+	}
+
+	/**
+	 * 
+	 *
+	 */
+	Glitch.prototype.styleSheet = function() {
+
+		var style = document.createElement("style");
+
+		style.setAttribute("media", "screen");
+
+		// WebKit hack :(
+		style.appendChild(document.createTextNode(""));
+
+		// Add the <style> element to the page
+		document.head.appendChild(style);
+
+		return style.sheet;
+	}
+
+	/**
+	 * 
+	 *
+	 */
+	Glitch.prototype.addRule = function(sheet, selector, rules, index) {
+		
+		if('insertRule' in sheet)
+			sheet.insertRule(selector + '{' + rules + '}', index);
+		else if('addRule' in sheet)
+			sheet.addRule(selector, rules, index);
+		else
+			console.log('oh oh');
 	}
 
 	/**
