@@ -9,7 +9,7 @@
 	 */
 
 	/**
-	 * Instantiate glitch listeners on the specified layer.
+	 * Instantiate Glitch.js on the specified layer.
 	 *
 	 * @constructor
 	 * @param {Element} layer The layer to listen on
@@ -73,14 +73,34 @@
 		 */
 		this.start(this.delay);
 
+		/**
+		 * 
+		 *
+		 */
+	}
+
+	/**
+	 * 
+	 *
+	 */
+	Glitch.prototype.startListeners = function() {
+
 		var self = this;
 
-		window.addEventListener('resize', function(e) { self.updateCollectionPlacement(); });
+		//window.addEventListener('resize', function(e) { self.updateCollectionPlacement(); });
+		window.addEventListener('resize', this.updateCollectionPlacement);
+	}
+
+	/**
+	 * 
+	 *
+	 */
+	Glitch.prototype.stopListeners = function() {
+
+		window.removeEventListener('resize', this.updateCollectionPlacement);
 	}
 
 	Glitch.prototype.updateCollectionPlacement = function(e) {
-
-		console.log('resize', this.collection.length + 'element(s)');
 
 		for (var i = 0; i < this.collection.length; i++) {
 		 	
@@ -314,7 +334,7 @@
 
 		delete collection.glitch;
 
-		if(this.done === this.collection.length) this.start(Math.floor(Math.random() * 3000) + 1000);
+		if(this.done === this.collection.length) this.start(Math.floor(Math.random() * 3000) + 1500);
 	}
 
 	/**
@@ -448,8 +468,6 @@
 			height: collection.placement.height + 'px',
 			left: -offsetX + 'px',
 			top: offsetY + 'px'
-
-
 		});
 
 		return channel;
@@ -549,7 +567,17 @@
 	 * 
 	 *
 	 */
+	Glitch.update = function(layer, options) {
+
+
+	}
+
+	/**
+	 * 
+	 *
+	 */
 	Glitch.destroy = function() {
+
 
 	}
 
@@ -571,6 +599,4 @@
 
 		window.Glitch = Glitch;
 	}
-
-	new Glitch(document.body, {delay:1000});
 }());
