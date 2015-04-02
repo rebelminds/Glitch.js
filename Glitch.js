@@ -62,7 +62,7 @@
 		this.collection = this.collect(this.layer, this.target);
 
 		 /**
-		 * 
+		 * Initialize Glitch with delay of this.delay
 		 *
 		 */
 		var self = this,
@@ -84,7 +84,6 @@
 	 *
 	 * returns {Array} tl - 
 	 */
-
 	Glitch.prototype.collect = function(layer, target) {
 
 		var tl = [],
@@ -132,7 +131,6 @@
 	 * Glitch each element in collection
 	 *
 	 */
-
 	Glitch.prototype.glitch = function() {
 
 		for (var i = 0; i < this.collection.length; i++) {
@@ -152,7 +150,6 @@
 	 *
 	 * returns {Object} glitch - 
 	 */
-
 	Glitch.prototype.add = function(collection) {
 
 		var glitch = this.displace(collection);
@@ -172,7 +169,6 @@
 	 *
 	 * returns {Object} displace - 
 	 */
-
 	Glitch.prototype.displace = function(collection) {
 
 		var parentComputedStyle = window.getComputedStyle(collection.el.parentNode),
@@ -212,26 +208,26 @@
 	 *
 	 * returns {Object} slice - 
 	 */
-
 	Glitch.prototype.displaceSlice = function(collection, position) {
 
 		var slice = document.createElement('DIV'),
 
 			offsetX = Math.floor(Math.random() * (this.offset * this.frequency + 1)) + this.offset,
 			offsetY = Math.ceil(collection.placement.height / position[1]),
-			odd = this.isOdd(position[0]);
+			isOdd = this.isOdd(position[0]);
 
 		slice.style.position = 'absolute';
 		slice.style.overflow = 'hidden';
 		slice.style.width = collection.placement.width + 'px';
 		slice.style.height = offsetY + 'px';
-		slice.style.left = (odd ? -offsetX : offsetX) + 'px';
+		slice.style.left = (isOdd ? -offsetX : offsetX) + 'px';
 		slice.style.top = (position[0] * offsetY) + 'px';
 
 		var clone = collection.el.cloneNode(true);
 
 		clone.style.position = 'absolute';
 		clone.style.top = -(position[0] * offsetY) + 'px';
+		clone.style.left = '0px';
 
 		slice.appendChild(clone);
 
@@ -245,7 +241,6 @@
 	 *
 	 * returns {Object} rgbSplit - 
 	 */
-
 	Glitch.prototype.rgbSplit = function(collection) {
 
 		var rgbSplit = document.createElement('DIV'),
@@ -273,7 +268,6 @@
 	 *
 	 * returns {Array}  
 	 */
-
 	Glitch.prototype.channelOffset = function() {
 
 		var offsetX = Math.floor(Math.random() * (this.offset * this.frequency + 1)) + this.offset,
@@ -289,7 +283,6 @@
 	 *
 	 * returns {Object} split - 
 	 */
-
 	Glitch.prototype.split = function(collection, offsetX, offsetY, hex) {
 
 		var split = collection.el.cloneNode(true);
@@ -311,7 +304,6 @@
 	 *
 	 * @param {Object} collection - 
 	 */
-
 	Glitch.prototype.remove = function(collection) {
 		
 		collection.el.parentNode.removeChild(collection.glitch);
@@ -326,7 +318,6 @@
 	 *
 	 * returns {String} hex -
 	 */
-
 	Glitch.prototype.rgbToHex = function(rgb) {
 
 		rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
@@ -341,7 +332,6 @@
 	 *
 	 * returns {String} hex -
 	 */
-
 	Glitch.prototype.hex = function(v) {
 
 		var hexDigits = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
@@ -356,7 +346,6 @@
 	 *
 	 * returns {Boolean}
 	 */
-
 	Glitch.prototype.isHex = function(v) {
 
 		return v.match(/^[0-9A-Fa-f]+$/);
@@ -369,7 +358,6 @@
 	 *
 	 * returns {Boolean}
 	 */
-
 	Glitch.prototype.isOdd = function(n) {
 
 		return this.isNumber(n) && (Math.abs(n) % 2 == 1);
@@ -382,7 +370,6 @@
 	 *
 	 * returns {Boolean}
 	 */
-
 	Glitch.prototype.isNumber = function(n) {
 
 		return n === parseFloat(n);
@@ -399,10 +386,18 @@
 		return new Glitch(layer, options);
 	}
 
+	/**
+	 * 
+	 *
+	 */
 	Glitch.destroy = function() {
 
 	}
 
+	/**
+	 * 
+	 *
+	 */
 	if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
 
 		// AMD. Register as an anonymous module.
