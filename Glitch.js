@@ -260,7 +260,8 @@
     	
     	delete this.timeoutID;
 
-    	this.done = 0;
+    	this.expectedCallbacks = 0;
+    	this.callbackCounter = 0;
 
 		for (var i = 0; i < this.collection.length; i++)
 		 	this.add(this.collection[i]);
@@ -276,6 +277,10 @@
 	Glitch.prototype.add = function(collection) {
 
 		if(collection.glitch) this.remove(collection);
+
+		if(!this.isElementOnViewport(collection.el)) return;
+
+		++this.expectedCallbacks;
 
 		var parentNode = collection.el.parentNode,
 			parentComputedStyle = window.getComputedStyle(parentNode),
@@ -313,7 +318,7 @@
 	 	}).appendChild(el);
 
 	 	var self = this,
-	 		duration = Math.floor(Math.random() * 1200) + 900,
+	 		duration = Math.floor(Math.random() * 900) + 600,
 	 		timeoutID = window.setTimeout(function() { self.remove(collection); clearTimeout(timeoutID); }, duration);
 
 		return collection;
@@ -326,7 +331,7 @@
 	 */
 	Glitch.prototype.remove = function(collection) {
 
-		++this.done;
+		++this.callbackCounter;
 		
 		collection.el.style.opacity = 1;
 
@@ -334,7 +339,7 @@
 
 		delete collection.glitch;
 
-		if(this.done === this.collection.length) this.start(Math.floor(Math.random() * 3000) + 1500);
+		if(this.callbackCounter === this.expectedCallbacks) this.start(Math.floor(Math.random() * 5400) + 1800);
 	}
 
 	/**
@@ -535,6 +540,18 @@
 	Glitch.prototype.isNumber = function(n) {
 
 		return n === parseFloat(n);
+	}
+
+	Glitch.prototype.isElementOnViewport = function(el) {
+
+		var rect = el.getBoundingClientRect();
+
+	    return (
+	        rect.top >= 0 &&
+	        rect.left >= 0 &&
+	        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+	        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+	    );
 	}
 
 	/**
