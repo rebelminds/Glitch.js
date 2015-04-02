@@ -79,7 +79,7 @@
 	/**
 	 * Scan layer and collect elements with target hex
 	 *
-	 * @param {Element} layer - 
+	 * @param {Element} layer - DOM Element
 	 * @param {Number} target - 
 	 *
 	 * returns {Array} tl - 
@@ -137,9 +137,20 @@
 
 		 	var collection = this.collection[i];
 
-		 	if(collection.glitch) this.remove(collection);
+		 	if(collection.glitch) this.remove(collection.glitch);
 
-		 	this.collection[i].glitch = this.add(collection);
+		 	var glitch = this.add(collection),
+		 		parentNode = this.collection[i].el.parentNode;
+
+		 	parentNode.style.overflow = 'visible';
+
+			parentNode.appendChild(glitch.el);
+
+			this.collection[i].el.style.opacity = 0;
+
+			this.collection[i].glitch = glitch;
+
+			console.log(glitch);
 		 }
 	}
 
@@ -152,14 +163,38 @@
 	 */
 	Glitch.prototype.add = function(collection) {
 
-		var glitch = this.displace(collection);
+		var parentComputedStyle = window.getComputedStyle(collection.el.parentNode),
+			parentTop = parentComputedStyle.getPropertyValue('top'),
+			parentLeft = parentComputedStyle.getPropertyValue('left');
 
-		collection.el.parentNode.style.overflow = 'visible';
-		collection.el.parentNode.appendChild(glitch);
+		var glitch = document.createElement('DIV'),
 
-		collection.el.style.opacity = 0;
+			rgbSplit = this.rgbSplit(collection),
+			displace = this.displace(collection);
 
-		return glitch;
+		glitch.style.position = 'absolute';
+		glitch.style.overflow = 'visible';
+		glitch.style.width = collection.placement.width + 'px';
+		glitch.style.height = collection.placement.height + 'px';
+		glitch.style.top = (isNaN(parentTop) ? collection.placement.top : collection.placement.top + parentTop) + 'px';
+		glitch.style.left = (isNaN(parentLeft) ? collection.placement.left : collection.placement.left + parentLeft) + 'px';
+
+		glitch.appendChild(rgbSplit);
+		glitch.appendChild(displace);
+
+		return {el: glitch, rgbSplit: rgbSplit, displace: displace};
+	}
+
+	/**
+	 * 
+	 *
+	 * @param {Object} collection - 
+	 */
+	Glitch.prototype.remove = function(glitch) {
+		
+		glitch.el.parentNode.removeChild(glitch.el);
+
+		delete collection.glitch;
 	}
 
 	/**
@@ -171,22 +206,14 @@
 	 */
 	Glitch.prototype.displace = function(collection) {
 
-		var parentComputedStyle = window.getComputedStyle(collection.el.parentNode),
-			parentTop = parentComputedStyle.getPropertyValue('top'),
-			parentLeft = parentComputedStyle.getPropertyValue('left');
-
 		var displace = document.createElement('DIV');
 
 		displace.style.position = 'absolute';
 		displace.style.overflow = 'visible';
 		displace.style.width = collection.placement.width + 'px';
 		displace.style.height = collection.placement.height + 'px';
-		displace.style.top = (isNaN(parentTop) ? collection.placement.top : collection.placement.top + parentTop) + 'px';
-		displace.style.left = (isNaN(parentLeft) ? collection.placement.left : collection.placement.left + parentLeft) + 'px';
-
-		var rgbSplit = this.rgbSplit(collection);
-
-		displace.appendChild(rgbSplit);
+		displace.style.top = '0px';
+		displace.style.left = '0px';
 
 		var slices = Math.ceil(collection.placement.height / 15);
 
@@ -246,17 +273,21 @@
 		var rgbSplit = document.createElement('DIV'),
 			offset = this.channelOffset();
 
-		var red = this.split(collection, -offset[0], offset[1], '#FF00FF');
+		rgbSplit.style.overflow = 'visible';
+		rgbSplit.style.width = collection.placement.width + 'px';
+		rgbSplit.style.height = collection.placement.height + 'px';
+
+		var red = this.rgbChannel(collection, -offset[0], offset[1], '#FF00FF');
 
 		rgbSplit.appendChild(red);
 
 		/*
-		var green = this.split(collection, offset[0], offset[1], '#FFFF00');
+		var green = this.rgbChannel(collection, offset[0], offset[1], '#FFFF00');
 
 		rgbSplit.appendChild(green);
 		*/
 		
-		var blue = this.split(collection, offset[0], -offset[1], '#00FFFF');
+		var blue = this.rgbChannel(collection, offset[0], -offset[1], '#00FFFF');
 
 		rgbSplit.appendChild(blue);
 
@@ -283,32 +314,22 @@
 	 *
 	 * returns {Object} split - 
 	 */
-	Glitch.prototype.split = function(collection, offsetX, offsetY, hex) {
+	Glitch.prototype.rgbChannel = function(collection, offsetX, offsetY, hex) {
 
-		var split = collection.el.cloneNode(true);
+		var channel = collection.el.cloneNode(true);
 
-		split.style.position = 'absolute';
+		channel.style.position = 'absolute';
 
 		for(var k in collection.propreties)
 			if(collection.propreties[k] !== false)
-				split.style[k] = hex;
+				channel.style[k] = hex;
 
-		split.style.left = -offsetX + 'px';
-		split.style.top = offsetY + 'px';
+		channel.style.width = collection.placement.width + 'px';
+		channel.style.height = collection.placement.height + 'px';
+		channel.style.left = -offsetX + 'px';
+		channel.style.top = offsetY + 'px';
 
-		return split;
-	}
-
-	/**
-	 * 
-	 *
-	 * @param {Object} collection - 
-	 */
-	Glitch.prototype.remove = function(collection) {
-		
-		collection.el.parentNode.removeChild(collection.glitch);
-
-		delete collection.glitch;
+		return channel;
 	}
 
 	/**
@@ -373,6 +394,18 @@
 	Glitch.prototype.isNumber = function(n) {
 
 		return n === parseFloat(n);
+	}
+
+	/**
+	 * 
+	 *
+	 * @param {Object} el - DOM Element
+	 * @param {Object} propreties - 
+	 *
+	 */
+	Glitch.prototype.css = function(el, propreties) {
+
+
 	}
 
 	/**
