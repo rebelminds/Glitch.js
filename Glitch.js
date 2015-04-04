@@ -304,16 +304,9 @@
 		++this.expectedCallbacks;
 
 		var parentNode = collection.el.parentNode,
-			parentTop = 0,
-			parentLeft = 0;
-
-		if(typeof parentNode === 'object') {
-
-			var parentComputedStyle = window.getComputedStyle(parentNode);
-
-			parentTop = parentComputedStyle.getPropertyValue('top'),
-			parentLeft = parentComputedStyle.getPropertyValue('left');
-		}
+			parentComputedStyle = this.getComputedStyle(parentNode),
+			parentTop = parentComputedStyle ? parentComputedStyle.getPropertyValue('top') : 0,
+			parentLeft = parentComputedStyle ? parentComputedStyle.getPropertyValue('left') : 0;
 
 		var el = document.createElement('DIV'),
 
@@ -325,8 +318,8 @@
 			overflow: 'visible',
 			width: collection.placement.width + 'px',
 			height: collection.placement.height + 'px',
-			top: (collection.placement.top + parentTop) + 'px',
-			left: (collection.placement.left + parentLeft) + 'px'
+			top: (isNaN(parentTop) ? collection.placement.top : collection.placement.top + parentTop) + 'px',
+			left: (isNaN(parentLeft) ? collection.placement.left : collection.placement.left + parentLeft) + 'px'
 		}).className = 'rm-glitch';
 
 		el.appendChild(rgbSplit);
@@ -341,7 +334,7 @@
 			displace: displace 
 		};
 
-		this.applyCss(parentNode, {
+		this.applyCss(parentNode ? parentNode : document.body, {
 	 		overflow: 'visible'
 	 	}).appendChild(el);
 
@@ -595,6 +588,19 @@
 			el.style[k] = properties[k];
 
 		return el;
+	}
+
+	Glitch.prototype.getComputedStyle = function(element) {
+
+		var style,
+				_element = element;
+
+		while(_element && _element.nodeType !== 1){
+			_element = _element.parentNode;
+		}
+
+		style = _element && _element.nodeType == 1 ? window.getComputedStyle(_element) : null;
+		return style;
 	}
 
 	/**
