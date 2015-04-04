@@ -55,6 +55,26 @@
 		this.delay = options.delay || 0;
 
 		/**
+		 * Initial delay of first glitch.
+		 *
+		 * @type Number (int)
+		 */
+		this.sfx = [];
+
+		if(options.sfx) {
+
+			for(var i = 0; i < options.sfx.length; ++i) {
+
+				var sfx = document.createElement('AUDIO');
+				sfx.src = options.sfx[i];
+				sfx.volume = 0.5;
+
+				document.body.appendChild(sfx);
+
+				this.sfx.push(sfx);
+			}
+		}
+		/**
 		 * 
 		 *
 		 */
@@ -85,8 +105,7 @@
 	 */
 	Glitch.prototype.startListeners = function() {
 
-		var self = this;
-
+		//var self = this;
 		//window.addEventListener('resize', function(e) { self.updateCollectionPlacement(); });
 		window.addEventListener('resize', this.updateCollectionPlacement);
 	}
@@ -143,7 +162,7 @@
 	 */
 	Glitch.prototype.styleSheet = function() {
 
-		var style = document.createElement("style");
+		var style = document.createElement("STYLE");
 
 		style.setAttribute("media", "screen");
 
@@ -263,6 +282,8 @@
     	this.expectedCallbacks = 0;
     	this.callbackCounter = 0;
 
+    	if(this.sfx.length)this.sfx[Math.floor(Math.random()*this.sfx.length)].play();
+
 		for (var i = 0; i < this.collection.length; i++)
 		 	this.add(this.collection[i]);
 	}
@@ -283,9 +304,16 @@
 		++this.expectedCallbacks;
 
 		var parentNode = collection.el.parentNode,
-			parentComputedStyle = window.getComputedStyle(parentNode),
+			parentTop = 0,
+			parentLeft = 0;
+
+		if(typeof parentNode === 'object') {
+
+			var parentComputedStyle = window.getComputedStyle(parentNode);
+
 			parentTop = parentComputedStyle.getPropertyValue('top'),
 			parentLeft = parentComputedStyle.getPropertyValue('left');
+		}
 
 		var el = document.createElement('DIV'),
 
@@ -297,8 +325,8 @@
 			overflow: 'visible',
 			width: collection.placement.width + 'px',
 			height: collection.placement.height + 'px',
-			top: (isNaN(parentTop) ? collection.placement.top : collection.placement.top + parentTop) + 'px',
-			left: (isNaN(parentLeft) ? collection.placement.left : collection.placement.left + parentLeft) + 'px'
+			top: (collection.placement.top + parentTop) + 'px',
+			left: (collection.placement.left + parentLeft) + 'px'
 		}).className = 'rm-glitch';
 
 		el.appendChild(rgbSplit);
