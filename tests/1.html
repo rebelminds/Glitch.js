@@ -4,8 +4,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <style type="text/css">
 	body { background: #000; }
-	p { font-family: sans-serif; color: #666; clear:both;}
+	p { margin-top: 30px; font-family: sans-serif; color: #666; clear:both;}
+	p.test { display: table; font-family: sans-serif; color: #666; clear:both; height:200px; padding: 0; margin: 0;}
 	span { color: #fff; }
+	span.test {display: table-cell; vertical-align: middle; padding: 0 20px; margin:0;}
 
 	div {width:30px;height:30px;float:left;}
 	div.one{ margin-right:30px; border: 1px solid #fff; }
@@ -24,7 +26,7 @@
 </head>
 <body>
 	<p><span>Glitch</span> is instantiated on the document body.</p>
-
+	<p class="test"><span class="test">test</span></p>
 	<div class="one"></div>
 	<div class="two"></div>
 	<div class="three"></div>

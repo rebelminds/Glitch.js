@@ -38,14 +38,14 @@
 		 *
 		 * @type Number (int)
 		 */
-		this.frequency = options.frequency || 1.5;
+		this.frequency = options.frequency || 1;
 
 		/**
 		 * Offset amount for displace and rgb split.
 		 *
 		 * @type Number (int)
 		 */
-		this.offset = 2;
+		this.offset = options.offset || 1;
 
 		 /**
 		 * Initial delay of first glitch.
@@ -85,6 +85,7 @@
 		 *
 		 * @type Array
 		 */
+		this.ignoreChildren = [];
 		this.collection = this.collect(this.layer, this.target);
 
 		/**
@@ -152,8 +153,6 @@
 		this.addRule(sheet, '.rm-glitch', 'transition: all .3s ease', 0);
 		this.addRule(sheet, '.rm-glitch-displace', 'transition: all .3s ease', 1);
 		this.addRule(sheet, '.rm-glitch-rgbsplit', 'transition: all .3s ease', 2);
-
-		console.log(sheet);
 	}
 
 	/**
@@ -212,6 +211,12 @@
 
 			if(!el) continue;
 
+			for (var n = 0; n < this.ignoreChildren.length; n++)
+				if(el.parentNode === this.ignoreChildren[n])
+					continue;
+
+			this.ignoreChildren.push(el);
+
 			var computedStyle = window.getComputedStyle(el, null),
 				color = computedStyle.getPropertyValue('color'),
 				backgroundColor = computedStyle.getPropertyValue('background-color'),
@@ -240,6 +245,8 @@
 					}
 				});
 		}
+
+		this.ignoreChildren = [];
 
 		return tl;
 	}
@@ -390,6 +397,15 @@
 			var slice = this.displaceSlice(collection, [i, slices]);
 
 			displace.appendChild(slice);
+			
+			var self = this,
+				timeoutID = window.setTimeout(function() { 
+					self.applyCss(slice, {
+						transform: 'translate3d(0,0,0)'
+					});
+
+					clearTimeout(timeoutID);
+				}, 0);
 		}
 
 		return displace;
@@ -416,15 +432,20 @@
 			overflow: 'hidden',
 			width: collection.placement.width + 'px',
 			height: offsetY + 'px',
-			left: (isOdd ? -offsetX : offsetX) + 'px',
-			top: (position[0] * offsetY) + 'px'
+			left: '0px',
+			top: (position[0] * offsetY) + 'px',
+			transform: 'translate3d(' + (isOdd ? -offsetX : offsetX) + 'px,0,0)',
+			transition: 'transform .3s cubic-bezier(.22,1,.75,0), opacity .3 linear'
 		});
 
 		var clone = collection.el.cloneNode(true);
 
-		clone.style.position = 'absolute';
-		clone.style.top = -(position[0] * offsetY) + 'px';
-		clone.style.left = '0px';
+		this.applyCss(clone, {
+			position: 'absolute',
+			left: '0px',
+			top: -(position[0] * offsetY) + 'px'
+			//transform: 'translate3d(0,' + (-(position[0] * offsetY)) + 'px,0)'
+		})		
 
 		slice.appendChild(clone);
 
@@ -443,7 +464,7 @@
 		var rgbSplit = document.createElement('DIV'),
 			offset = this.channelOffset(),
 			red = this.rgbChannel(collection, -offset[0], offset[1], '#FF00FF'),
-			//green = this.rgbChannel(collection, offset[0], offset[1], '#FFFF00'),
+			green = this.rgbChannel(collection, offset[0], offset[1], '#000000'),
 			blue = this.rgbChannel(collection, offset[0], -offset[1], '#00FFFF');
 
 		this.applyCss(rgbSplit, {
@@ -453,8 +474,23 @@
 		}).className = 'rm-glitch-rgbsplit';
 
 		rgbSplit.appendChild(red);
-		//rgbSplit.appendChild(green);
+		rgbSplit.appendChild(green);
 		rgbSplit.appendChild(blue);
+
+		var self = this,
+			timeoutID = window.setTimeout(function() { 
+				self.applyCss(red, {
+					transform: 'translate3d(0,'+(-offset[0])+'px,0)'
+				});
+				self.applyCss(green, {
+					transform: 'translate3d('+(-offset[0])+'px,0,0)'
+				});
+				self.applyCss(blue, {
+					transform: 'translate3d(0,'+(offset[0])+'px,0)'
+				});
+
+				clearTimeout(timeoutID);
+			}, 0);
 
 		return rgbSplit;
 	}
@@ -492,8 +528,12 @@
 		this.applyCss(channel, {
 			width: collection.placement.width + 'px',
 			height: collection.placement.height + 'px',
-			left: -offsetX + 'px',
-			top: offsetY + 'px'
+			//left: -offsetX + 'px',
+			//top: offsetY + 'px',
+			left: '0px',
+			top: '0px',
+			transition: 'transform .3s cubic-bezier(.22,1,.75,0), opacity .3 linear',
+			transform: 'translate3d(' + (-offsetX) + 'px,' + offsetY + 'px,0)'
 		});
 
 		return channel;
@@ -585,7 +625,8 @@
 	Glitch.prototype.applyCss = function(el, properties) {
 
 		for(var k in properties)
-			el.style[k] = properties[k];
+			if(typeof el.style[k] !== 'undefined')
+				el.style[k] = properties[k];
 
 		return el;
 	}
